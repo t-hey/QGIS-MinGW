@@ -26,7 +26,9 @@ QMAKE_BUILD_OPTIONS='-makefile -spec win32-g++'
 QMAKE='c:/Qt/qt-5.3.2/bin/qmake'
 
 #************* Flags for which dependencies to build, by default all is false **************
-BUILD_GEOS=true #Build with cmake, i get link errors when configure generate the makefiles
+BUILD_ZLIB=false
+
+BUILD_GEOS=false #Build with cmake, i get link errors when configure generate the makefiles
 BUILD_FREEXL=false
 BUILD_PROJ4=false
 BUILD_GDAL=false
@@ -38,7 +40,7 @@ BUILD_FLEX=false
 BUILD_BISON=false
 BUILD_XML2=false
 BUILD_ICONV=false
-BUILD_SPATIALITE=true
+BUILD_SPATIALITE=false
 BUILD_SPATIALINDEX=false #Build it with CMAKE the configure does not work
 GET_QWT=false
 BUILD_QWT=false
@@ -100,13 +102,53 @@ if [ ! -d "$ROOT_DIR/$LIBSEXTERNAL_DIR" ]; then
   mkdir -p $LIBSEXTERNAL_DIR
 fi
 
-#Change to downloads folder
-#cd $DOWNLOAD_DIR
-#pwd
 
+if $BUILD_ZLIB ; then
+#========[Start with ZLIB]===================================
+    #Change to downloads folder
+    cd $DOWNLOAD_DIR
+    LIB_NAME_DIR='zlib'
+    LIB_NAMEVERSION_DIR='zlib-1.2.8'
+    SOURCE_ARCHIVE='zlib-1.2.8.tar.gz'
+    SOURCE_URL='http://zlib.net/zlib-1.2.8.tar.gz'
+
+    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/$LIB_NAME_DIR
+    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/$LIB_NAME_DIR/$LIB_NAMEVERSION_DIR/$ARCH
+
+    # Getting and building ZLIB
+    echo && echo -e $GREEN  Getting and building $LIB_NAMEVERSION_DIR $NORMAL
+    #pwd
+    echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous extracted files of ZLIB
+    rm -rf $SOURCE_EXTRACT_DIR
+    #remove the previous build binaries  of ZLIB
+    rm -rf $BIN_INSTALL_DIR
+
+    #Getting the source from the internet
+    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+
+    #make the extraction directory
+    mkdir -p $SOURCE_EXTRACT_DIR
+    #make the install directory
+    mkdir -p $BIN_INSTALL_DIR
+
+    #Extract the zip file
+    echo -e $RED Extract the source $NORMAL
+    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
+    # cd to extracted directory
+    cd $SOURCE_EXTRACT_DIR/$LIB_NAMEVERSION_DIR
+    #pwd
+    echo -e $GREEN  Build LIB_NAMEVERSION_DIR $NORMAL
+    echo -e $GREEN  build binaries $NORMAL
+    export BINARY_PATH=$BIN_INSTALL_DIR/bin 
+    export INCLUDE_PATH=$BIN_INSTALL_DIR/include
+    export LIBRARY_PATH=$BIN_INSTALL_DIR/lib 
+    $MINGW_MAKETOOL -f win32/Makefile.gcc && $MINGW_MAKETOOL install -f win32/Makefile.gcc SHARED_MODE=1
+    echo
+#========[Finish with ZLIB]===================================
+fi
 LIB_GEOS_NAME_DIR='geos'
 LIB_GEOS_NAMEVERSION_DIR='geos-3.4.2'
-
 if $BUILD_GEOS ; then
 #========[Start with GEOS]===================================
     #Change to downloads folder
