@@ -31,7 +31,6 @@ BUILD_ZLIB=false
 BUILD_GEOS=false #Build with cmake, i get link errors when configure generate the makefiles
 BUILD_FREEXL=false
 BUILD_PROJ4=false
-BUILD_GDAL=false
 BUILD_SQLite=false
 BUILD_GSL=false
 BUILD_EXPAT=false
@@ -42,6 +41,7 @@ BUILD_XML2=false
 BUILD_ICONV=false
 BUILD_SPATIALITE=false
 BUILD_SPATIALINDEX=false #Build it with CMAKE the configure does not work
+BUILD_GDAL=true
 GET_QWT=false
 BUILD_QWT=false
 GET_QWTPOLAR=false
@@ -292,25 +292,26 @@ if $BUILD_PROJ4 ; then
 #========[Finish with PROJ4]===================================
 fi
 
-if $BUILD_GDAL ; then
-    #========[Start with GDAL]===================================
+LIB_XML_NAME_DIR='libxml2'
+LIB_XML_NAMEVERSION_DIR='libxml2-2.9.2'
+if $BUILD_XML2 ; then
+#========[Start with libXml2]===================================
     #Change to downloads folder
     cd $DOWNLOAD_DIR
 
-    LIBNAME_DIR='gdal'
-    LIBNAMEVERSION_DIR='gdal-1.11.1'
-    SOURCE_ARCHIVE='gdal1111.zip'
-    SOURCE_URL='http://download.osgeo.org/gdal/1.11.1/gdal1111.zip'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
-    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIBNAME_DIR/$LIBNAMEVERSION_DIR/$ARCH
+    SOURCE_ARCHIVE='libxml2-2.9.2.tar.gz'
+    SOURCE_URL='http://xmlsoft.org/sources/libxml2-2.9.2.tar.gz'
 
-    # Getting and building GDAL
-    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
+    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_XML_NAME_DIR
+    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_XML_NAME_DIR/$LIB_XML_NAMEVERSION_DIR/$ARCH
+
+    # Getting and building Expat
+    echo && echo -e $GREEN  Getting and building $LIB_XML_NAMEVERSION_DIR $NORMAL
     #pwd
     echo -e $GREEN  removing previous stuff $NORMAL
-    #remove the previous extracted files of gdal
+    #remove the previous extracted files of Expat
     rm -rf $SOURCE_EXTRACT_DIR
-    #remove the previous build binaries  of gdal
+    #remove the previous build binaries  of Expat
     rm -rf $BIN_INSTALL_DIR
 
     #Getting the source from the internet
@@ -322,22 +323,52 @@ if $BUILD_GDAL ; then
     mkdir -p $BIN_INSTALL_DIR
 
     #Extract the zip file
-    $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
-
+    echo -e $RED Extract the source $NORMAL
+    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
     # cd to extracted directory
-    cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DIR
+    cd $SOURCE_EXTRACT_DIR/$LIB_XML_NAMEVERSION_DIR
     #pwd
-    echo -e $GREEN  configure makefiles $NORMAL
-    export CPPFLAGS="-I$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_GEOS_NAME_DIR/$LIB_GEOS_NAMEVERSION_DIR/win32/include -I$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_FREEXL_NAME_DIR/$LIB_FREEXL_NAMEVERSION_DIR/win32/include -I$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_PROJ4_NAME_DIR/$LIB_PROJ4_NAMEVERSION_DIR/win32/include"
-    echo $CPPFLAGS
-    export LDFLAGS="-L$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_PROJ4_NAME_DIR/$LIB_PROJ4_NAMEVERSION_DIR/win32/lib -L$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_FREEXL_NAME_DIR/$LIB_FREEXL_NAMEVERSION_DIR/win32/lib -L$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_GEOS_NAME_DIR/$LIB_GEOS_NAMEVERSION_DIR/win32/lib"
-    echo $LDFLAGS
-
-     echo -e $YELLOW && ./configure --with-geos=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_GEOS_NAME_DIR/$LIB_GEOS_NAMEVERSION_DIR/win32/bin/geos-config --prefix=$BIN_INSTALL_DIR &&  echo -e $NORMAL
+    echo -e $GREEN  configure Expat makefiles $NORMAL
+     echo -e $YELLOW && ./configure --without-python --prefix=$BIN_INSTALL_DIR &&  echo -e $NORMAL
     echo -e $GREEN  build binaries $NORMAL
     $MAKETOOL && $MAKETOOL install
+#========[Finish with libXml2]===================================
+fi
+
+LIBNAME_PG_DIR='postgres'
+LIB_PG_NAMEVERSION_DIR='postgresql-9.3.5-1'
+if $BUILD_POSTGRES ; then
+#========[Start with Postgres]===================================
+    #We are just extracting the postgres binaries not building postres
+    #Change to downloads folder
+    cd $DOWNLOAD_DIR
+    
+    echo && echo -e $GREEN  Getting and extracting $LIB_PG_NAMEVERSION_DIR $NORMAL
+    
+    BINARY_ARCHIVE='postgresql-9.3.5-1-windows-binaries.zip'
+    SOURCE_URL='http://get.enterprisedb.com/postgresql/postgresql-9.3.5-1-windows-binaries.zip'
+
+    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/$ARCH
+
+    echo && echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous build binaries  of Postgres
+    rm -rf $BIN_INSTALL_DIR
+
+    #Getting the source from the internet
+    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+
+    #make the install directory
+    mkdir -p $BIN_INSTALL_DIR
+    pwd
+    echo -e $GREEN  Extract the binaries for $LIB_PG_NAMEVERSION_DIR $NORMAL
+    #Extract the zip file
+    echo $ZIPTOOL $BINARY_ARCHIVE -o$BIN_INSTALL_DIR
+    $ZIPTOOL $BINARY_ARCHIVE -o$BIN_INSTALL_DIR
+    
+    echo -e $RED We have to rename the pthread.h file to not get redefinition of 'struct timespec' when compiling GDAL later $NORMAL
+    mv $BIN_INSTALL_DIR/pgsql/include/pthread.h $BIN_INSTALL_DIR/pgsql/include/pthread.h.backup
     echo
-#========[Finish with GDAL]===================================
+#========[Finish with Postgres]===================================
 fi
 
 LIB_SQLLITE_NAME_DIR='sqlite'
@@ -384,6 +415,53 @@ if $BUILD_SQLite ; then
 #========[Finish with SQLite]===================================
 fi
 
+
+LIB_EXPAT_NAME_DIR='expat'
+LIB_EXPAT_NAMEVERSION_DIR='expat-2.1.0'
+if $BUILD_EXPAT ; then
+#========[Start with Expat]===================================
+     #Change to downloads folder
+    cd $DOWNLOAD_DIR
+
+    SOURCE_ARCHIVE='expat-2.1.0.tar.gz'
+    SOURCE_URL='http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz'
+
+    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_EXPAT_NAME_DIR
+    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_EXPAT_NAME_DIR/$LIB_EXPAT_NAMEVERSION_DIR/$ARCH
+
+    # Getting and building Expat
+    echo && echo -e $GREEN  Getting and building $LIB_EXPAT_NAMEVERSION_DIR $NORMAL
+    #pwd
+    echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous extracted files of Expat
+    rm -rf $SOURCE_EXTRACT_DIR
+    #remove the previous build binaries  of Expat
+    rm -rf $BIN_INSTALL_DIR
+
+    #Getting the source from the internet
+    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+
+    #make the extraction directory
+    mkdir -p $SOURCE_EXTRACT_DIR
+    #make the install directory
+    mkdir -p $BIN_INSTALL_DIR
+
+    #Extract the zip file
+    echo -e $RED Extract the source $NORMAL
+    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
+    # cd to extracted directory
+    cd $SOURCE_EXTRACT_DIR/$LIB_EXPAT_NAMEVERSION_DIR
+    #pwd
+    echo -e $GREEN  configure Expat makefiles $NORMAL
+     echo -e $YELLOW && ./configure --prefix=$BIN_INSTALL_DIR &&  echo -e $NORMAL
+    echo -e $GREEN  build binaries $NORMAL
+    $MAKETOOL && $MAKETOOL install
+#========[Finish with Expat]===================================
+fi
+
+
+
+
 if $BUILD_GSL ; then
 #========[Start with GSL]===================================
      #Change to downloads folder
@@ -425,80 +503,6 @@ if $BUILD_GSL ; then
     $MAKETOOL && $MAKETOOL install
     echo
 #========[Finish with GSL]===================================
-fi
-
-if $BUILD_EXPAT ; then
-#========[Start with Expat]===================================
-     #Change to downloads folder
-    cd $DOWNLOAD_DIR
-
-    LIBNAME_DIR='expat'
-    LIBNAMEVERSION_DIR='expat-2.1.0'
-    SOURCE_ARCHIVE='expat-2.1.0.tar.gz'
-    SOURCE_URL='http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz'
-
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
-    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIBNAME_DIR/$LIBNAMEVERSION_DIR/$ARCH
-
-    # Getting and building Expat
-    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
-    #pwd
-    echo -e $GREEN  removing previous stuff $NORMAL
-    #remove the previous extracted files of Expat
-    rm -rf $SOURCE_EXTRACT_DIR
-    #remove the previous build binaries  of Expat
-    rm -rf $BIN_INSTALL_DIR
-
-    #Getting the source from the internet
-    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
-
-    #make the extraction directory
-    mkdir -p $SOURCE_EXTRACT_DIR
-    #make the install directory
-    mkdir -p $BIN_INSTALL_DIR
-
-    #Extract the zip file
-    echo -e $RED Extract the source $NORMAL
-    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
-    # cd to extracted directory
-    cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DIR
-    #pwd
-    echo -e $GREEN  configure Expat makefiles $NORMAL
-     echo -e $YELLOW && ./configure --prefix=$BIN_INSTALL_DIR &&  echo -e $NORMAL
-    echo -e $GREEN  build binaries $NORMAL
-    $MAKETOOL && $MAKETOOL install
-#========[Finish with Expat]===================================
-fi
-
-if $BUILD_POSTGRES ; then
-#========[Start with Postgres]===================================
-    #We are just extracting the postgres binaries not building postres
-    #Change to downloads folder
-    cd $DOWNLOAD_DIR
-
-    LIBNAME_DIR='postgres'
-    LIBNAMEVERSION_DIR='postgresql-9.3.5-1'
-    BINARY_ARCHIVE='postgresql-9.3.5-1-windows-binaries.zip'
-    SOURCE_URL='http://get.enterprisedb.com/postgresql/postgresql-9.3.5-1-windows-binaries.zip'
-
-    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/$LIBNAME_DIR/$LIBNAMEVERSION_DIR/$ARCH
-
-    echo && echo -e $GREEN  removing previous stuff $NORMAL
-    #remove the previous build binaries  of Postgres
-    rm -rf $BIN_INSTALL_DIR
-
-    #Getting the source from the internet
-    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
-
-    #make the install directory
-    mkdir -p $BIN_INSTALL_DIR
-    pwd
-    echo -e $GREEN  Extract the binaries for $LIBNAMEVERSION_DIR $NORMAL
-    #Extract the zip file
-    echo $ZIPTOOL $BINARY_ARCHIVE -o$BIN_INSTALL_DIR
-    $ZIPTOOL $BINARY_ARCHIVE -o$BIN_INSTALL_DIR
-    echo
-#========[Finish with Postgres]===================================
 fi
 
 if $BUILD_FLEX ; then
@@ -557,49 +561,6 @@ if $BUILD_BISON ; then
     $ZIPTOOL $BINARY_ARCHIVE -o$BIN_INSTALL_DIR
     echo
 #========[Finish with BISON]===================================
-fi
-
-LIB_XML_NAME_DIR='libxml2'
-LIB_XML_NAMEVERSION_DIR='libxml2-2.9.2'
-if $BUILD_XML2 ; then
-#========[Start with libXml2]===================================
-    #Change to downloads folder
-    cd $DOWNLOAD_DIR
-
-    SOURCE_ARCHIVE='libxml2-2.9.2.tar.gz'
-    SOURCE_URL='http://xmlsoft.org/sources/libxml2-2.9.2.tar.gz'
-
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_XML_NAME_DIR
-    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_XML_NAME_DIR/$LIB_XML_NAMEVERSION_DIR/$ARCH
-
-    # Getting and building Expat
-    echo && echo -e $GREEN  Getting and building $LIB_XML_NAMEVERSION_DIR $NORMAL
-    #pwd
-    echo -e $GREEN  removing previous stuff $NORMAL
-    #remove the previous extracted files of Expat
-    rm -rf $SOURCE_EXTRACT_DIR
-    #remove the previous build binaries  of Expat
-    rm -rf $BIN_INSTALL_DIR
-
-    #Getting the source from the internet
-    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
-
-    #make the extraction directory
-    mkdir -p $SOURCE_EXTRACT_DIR
-    #make the install directory
-    mkdir -p $BIN_INSTALL_DIR
-
-    #Extract the zip file
-    echo -e $RED Extract the source $NORMAL
-    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
-    # cd to extracted directory
-    cd $SOURCE_EXTRACT_DIR/$LIB_XML_NAMEVERSION_DIR
-    #pwd
-    echo -e $GREEN  configure Expat makefiles $NORMAL
-     echo -e $YELLOW && ./configure --without-python --prefix=$BIN_INSTALL_DIR &&  echo -e $NORMAL
-    echo -e $GREEN  build binaries $NORMAL
-    $MAKETOOL && $MAKETOOL install
-#========[Finish with libXml2]===================================
 fi
 
 LIBNAME_ICONV_DIR='iconv'
@@ -800,6 +761,67 @@ if $BUILD_SPATIALINDEX ; then
     $MAKETOOL && $MAKETOOL install
     echo
 #========[Finish with SPATIALINDEX]===================================
+fi
+
+if $BUILD_GDAL ; then
+    #========[Start with GDAL]===================================
+    #Change to downloads folder
+    cd $DOWNLOAD_DIR
+
+    LIBNAME_DIR='gdal'
+    LIBNAMEVERSION_DIR='gdal-1.11.1'
+    SOURCE_ARCHIVE='gdal1111.zip'
+    SOURCE_URL='http://download.osgeo.org/gdal/1.11.1/gdal1111.zip'
+    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
+    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIBNAME_DIR/$LIBNAMEVERSION_DIR/$ARCH
+
+    INCLUDE_GEOS=-I$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_GEOS_NAME_DIR/$LIB_GEOS_NAMEVERSION_DIR/win32/include
+    INCLUDE_FREEXL=-I$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_FREEXL_NAME_DIR/$LIB_FREEXL_NAMEVERSION_DIR/win32/include
+    INCLUDE_PROJ=-I$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_PROJ4_NAME_DIR/$LIB_PROJ4_NAMEVERSION_DIR/win32/include
+    
+    LIB_GEOS=-L$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_GEOS_NAME_DIR/$LIB_GEOS_NAMEVERSION_DIR/win32/lib
+    LIB_FREEXL=-L$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_FREEXL_NAME_DIR/$LIB_FREEXL_NAMEVERSION_DIR/win32/lib
+    LIB_PROJ=-L$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_PROJ4_NAME_DIR/$LIB_PROJ4_NAMEVERSION_DIR/win32/lib
+    
+    
+    # Getting and building GDAL
+    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
+    #pwd
+    echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous extracted files of gdal
+    rm -rf $SOURCE_EXTRACT_DIR
+    #remove the previous build binaries  of gdal
+    rm -rf $BIN_INSTALL_DIR
+
+    #Getting the source from the internet
+    echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+
+    #make the extraction directory
+    mkdir -p $SOURCE_EXTRACT_DIR
+    #make the install directory
+    mkdir -p $BIN_INSTALL_DIR
+
+    #Extract the zip file
+    $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
+
+    # cd to extracted directory
+    cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DIR
+    #pwd
+    echo -e $GREEN  configure makefiles $NORMAL
+    export CPPFLAGS="$INCLUDE_GEOS $INCLUDE_FREEXL $INCLUDE_PROJ"
+    export LDFLAGS="$LIB_GEOS $LIB_FREEXL $LIB_PROJ"
+    echo -e $YELLOW && ./configure  \
+        --with-geos=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_GEOS_NAME_DIR/$LIB_GEOS_NAMEVERSION_DIR/win32/bin/geos-config \
+        --with-xml2=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_XML_NAME_DIR/$LIB_XML_NAMEVERSION_DIR/win32/bin/xml2-config \
+        --with-pg=$ROOT_DIR/$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/win32/pgsql/bin/pg_config.exe \
+        --with-sqlite3=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_SQLLITE_NAME_DIR/$LIB_SQLLITE_NAMEVERSION_DIR/win32 \
+        --with-freexl=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_FREEXL_NAME_DIR/$LIB_FREEXL_NAMEVERSION_DIR/win32/lib \
+        --with-expat=$ROOT_DIR/$LIBSDEP_DIR/Gis/$LIB_EXPAT_NAME_DIR/$LIB_EXPAT_NAMEVERSION_DIR/win32 \
+        --prefix=$BIN_INSTALL_DIR &&  echo -e $NORMAL
+    echo -e $GREEN  build binaries $NORMAL
+    $MAKETOOL && $MAKETOOL install
+    echo
+#========[Finish with GDAL]===================================
 fi
 
 #========[Start with QWT]===================================
