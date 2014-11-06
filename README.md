@@ -21,6 +21,8 @@ If you already have Qt installed with MinGW, just get MSYS to use the MinGW that
 
 All the dependencies have a build flag in the script that can be set, so that only one or more dependencies can be build. All of them can also be build at once if so desired and will take some time.
 
+=== Script Details ===
+
 The script builds the following dependencies.
 * ZLib
 * Geos 
