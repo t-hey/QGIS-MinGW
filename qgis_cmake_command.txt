@@ -1,5 +1,10 @@
-set LIB=c:/windows/system32
+Build commands for QGIS from a cmd console window.
+Firstly cd to the out of source build directory
 
+First command is: 
+  set LIB=c:/windows/system32
+  
+Second command is:   
 cmake ^
 -G "MinGW Makefiles" ^
 ..\QGIS ^
@@ -14,3 +19,6 @@ cmake ^
 -DWITH_QTWEBKIT=FALSE ^
 -DWITH_BINDINGS=FALSE ^
 -Wno-dev
+
+Third command is:
+mingw32-make
