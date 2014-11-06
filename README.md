@@ -1,15 +1,18 @@
-QGisDeps-MinGW32
+QGIS-MinGW
 ================
 
-Information on how to build QGIS dependencies with MinGW-MSYS. 
-
+This is information on how to build QGIS with the MinGW toolchain.<br>
 This repo contains a shell script to be used with MinGW-MSYS.
-I used MinGW with posix threading and dwarf pointers, for a explanation on dwarf see http://stackoverflow.com/questions/15670169/what-is-difference-between-sjlj-vs-dwarf-vs-seh
+
+=== Build Environment ===
+
+1. MinGW 
+3. I used MinGW with posix threading and dwarf pointers, for a explanation on dwarf see     http://stackoverflow.com/questions/15670169/what-is-difference-between-sjlj-vs-dwarf-vs-seh
 
 Get this version of MinGW here http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.1/threads-posix/dwarf/i686-4.9.1-release-posix-dwarf-rt_v3-rev2.7z/download
 
 Install MSYS with the mingw-get-setup.exe from this page http://www.mingw.org/wiki/getting_started and follow the instructions on how to use the MinGW you downloaded above.
-Open MSYS and run build_gis_deps.sh from where you have it on your system.
+Open MSYS and run build_gis_deps.sh script from where you have saved it on your system.
 
 NOTE: If you have build against the above MinGW you need the Qt version that you have on your machine, also build against the above version of MinGW, otherwise you will have dependencies build with a defferent version that Qt use to build against, and that will cause trouble. 
 If you already have Qt installed with MinGW, just get MSYS to use the MinGW that Qt use. Then run the script to build the QGis dependencies.
