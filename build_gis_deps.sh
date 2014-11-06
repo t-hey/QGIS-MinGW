@@ -27,17 +27,16 @@ QMAKE='c:/Qt/qt-5.3.2/bin/qmake'
 
 #************* Flags for which dependencies to build, by default all is false **************
 BUILD_ZLIB=false #optional
-
 BUILD_GEOS=false #Build with cmake, i get link errors when configure generate the makefiles
 BUILD_FREEXL=false
 BUILD_PROJ4=false
-BUILD_SQLite=false
-BUILD_GSL=false
-BUILD_EXPAT=true
+BUILD_XML2=false
 BUILD_POSTGRES=false
+BUILD_SQLite=false
+BUILD_EXPAT=true
+BUILD_GSL=false
 BUILD_FLEX=false   #optional
 BUILD_BISON=false  #optional
-BUILD_XML2=false
 BUILD_ICONV=false
 BUILD_SPATIALITE=false
 BUILD_SPATIALINDEX=false #Build it with CMAKE the configure does not work
