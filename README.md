@@ -20,10 +20,10 @@ If you already have Qt installed with MinGW, just get MSYS to use the MinGW that
 
 === Usage ===<br>
 * Open MSYS and run build_gis_deps.sh script from where you have saved it on your machine.<br>
-* Add the "MSYS install dir"\msys\1.0\local\bin, "MSYS install dir"\msys\1.0\local\include and "MSYS install dir"\msys\1.0\local\lib folders to you path.
+* Add the &lt;MSYS install dir&gt;\msys\1.0\local\bin,<br> &lt;MSYS install dir&gt;\msys\1.0\local\include and <br> &lt;MSYS install dir&gt;\msys\1.0\local\lib folders to you path.
 * Clone/Fork the QGIS git repo https://github.com/t-hey/QGIS.git 
 * Create a out of source build directory 
-* cd to "out of source build directory"
+* cd to &lt;out of source build directory&gt;
 * Issue the commands in the qgis_cmake_command.txt file.
 
 All the dependencies have a build flag in the script that can be set, so that only one or more dependencies can be build. All of them can also be build at once if so desired and will take some time.
