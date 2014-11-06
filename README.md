@@ -4,7 +4,7 @@ QGIS-MinGW
 This is information on how to build QGIS with the MinGW toolchain.<br>
 This repo contains a shell script to be used with MinGW-MSYS.
 
-=== Build Environment ===<br>
+=== Build Environment ===
 * MinGW<br>
 I used MinGW with posix threading and dwarf pointers, for a explanation on dwarf see     http://stackoverflow.com/questions/15670169/what-is-difference-between-sjlj-vs-dwarf-vs-seh <br>
 Get this version of MinGW here http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.1/threads-posix/dwarf/i686-4.9.1-release-posix-dwarf-rt_v3-rev2.7z/download <br>
