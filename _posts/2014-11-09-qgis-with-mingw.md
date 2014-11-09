@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Build QGIS with MinGW
-date: {}
+date: 2014-11-09 17:01:30
 categories: QGIS MinGW
 published: true
 ---
