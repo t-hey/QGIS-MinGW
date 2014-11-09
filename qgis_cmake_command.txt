@@ -1,0 +1,24 @@
+Build commands for QGIS from a cmd console window.
+Firstly cd to the out of source build directory
+
+First command is: 
+  set LIB=c:/windows/system32
+  
+Second command is:   
+cmake ^
+-G "MinGW Makefiles" ^
+..\QGIS ^
+-DCMAKE_PREFIX_PATH="C:/Qt/qt-5.3.2/" ^
+-DENABLE_QT5=TRUE ^
+-DQT_BINARY_DIR="C:/Qt/qt-5.3.2/bin" ^
+-DWITH_GRASS=FALSE ^
+-DWITH_POSTGRESQL=TRUE ^
+-DPOSTGRES_INCLUDE_DIR=C:/cpp/dev/LibsDep_/postgres/postgresql-9.3.5-1/win32/pgsql/include ^
+-DPOSTGRES_LIBRARY=C:/cpp/dev/LibsDep_/postgres/postgresql-9.3.5-1/win32/pgsql/bin/libpq.dll ^
+-DWITH_INTERNAL_QWTPOLAR=FALSE ^
+-DWITH_QTWEBKIT=FALSE ^
+-DWITH_BINDINGS=FALSE ^
+-Wno-dev
+
+Third command is:
+mingw32-make
