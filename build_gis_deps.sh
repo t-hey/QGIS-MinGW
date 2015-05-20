@@ -5,9 +5,9 @@ ROOT_DIR='/c/cpp/dev'
 #Setup the downloads directory for downloading the Source 
 DOWNLOAD_DIR=$ROOT_DIR/downloads
 #In this dir binaries and include files will be extracted eg.Postgres 
-LIBSDEP_DIR='LibsDep_'
+LIBSDEP_DIR=$ROOT_DIR/LibsDep_
 #In this dir all the source for the dependencies will extracted
-LIBSEXTERNAL_DIR='LibsExternal_'
+LIBSEXTERNAL_DIR=$ROOT_DIR/LibsExternal_
 #This will show that we are building for win32
 ARCH='win32'
 #name of the too to be used for extracting downloaded zip files
@@ -23,28 +23,29 @@ CMAKE_TOOL='cmake -G'
 #Build options for qmake
 QMAKE_BUILD_OPTIONS='-makefile -spec win32-g++'
 #Path to the qmake exe
-QMAKE='c:/Qt/qt-5.3.2/bin/qmake'
+QMAKE='C:/Qt/Qt5.4.1/5.4/mingw491_32/bin/qmake'
 
 #************* Flags for which dependencies to build, by default all is false **************
-BUILD_ZLIB=false #optional
-BUILD_GEOS=false #Build with cmake, i get link errors when configure generate the makefiles
-BUILD_FREEXL=false
-BUILD_PROJ4=false
-BUILD_XML2=false
-BUILD_POSTGRES=false
-BUILD_SQLite=false
+BUILD_ZLIB=true #optional
+BUILD_GEOS=true #Build with cmake, i get link errors when configure generate the makefiles
+BUILD_FREEXL=true
+BUILD_PROJ4=true
+BUILD_XML2=true
+BUILD_POSTGRES=true
+BUILD_SQLite=true
 BUILD_EXPAT=true
-BUILD_GSL=false
-BUILD_FLEX=false   #optional
-BUILD_BISON=false  #optional
-BUILD_ICONV=false
-BUILD_SPATIALITE=false
-BUILD_SPATIALINDEX=false #Build it with CMAKE the configure does not work
-BUILD_GDAL=false
-GET_QWT=false
-BUILD_QWT=false
-GET_QWTPOLAR=false
-BUILD_QWTPOLAR=false
+BUILD_GSL=true
+BUILD_FLEX=true   #optional
+BUILD_BISON=true  #optional
+BUILD_ICONV=true
+BUILD_SPATIALITE=true
+BUILD_SPATIALINDEX=true #Build it with CMAKE the configure does not work
+BUILD_GDAL=true
+GET_QWT=true
+BUILD_QWT=true
+GET_QWTPOLAR=true
+BUILD_QWTPOLAR=true
+
 
 #************** Define colors *********************
 BLACK="\033[30m"
@@ -52,20 +53,10 @@ RED="\033[31m"
 GREEN="\033[32m"
 YELLOW="\033[33m"
 BLUE="\033[34m"
-PINK="\033[35m"
+PURPLE="\033[35m"
 CYAN="\033[36m"
 WHITE="\033[37m"
 NORMAL="\033[0;39m"
-
-# Check if libdl.a is installed. 
-# When building spatialite the configure script somehow pick up that libld is installed, 
-# and add -ldl to the linklist of the examples in spatialite, 
-# then the build process crash if it is not present
-if [ ! -f "/lib/libdl.a" ]; then
- BUILD_LIB_DL=true 
-else
- BUILD_LIB_DL=false    
-fi 
 
 #Check binary paths
 if [[ $QMAKE = '' ]]; then
@@ -73,7 +64,7 @@ if [[ $QMAKE = '' ]]; then
     exit
 else
     if [ ! -f "$QMAKE" ]; then
-     echo $QMAKE does not exist, fix the path to the qmake.exe 
+     echo -e $RED $QMAKE does not exist, fix the path value of the to the QMAKE variable in the script $NORMAL 
      exit
     fi
 fi
@@ -86,20 +77,33 @@ fi
 
 echo -e $GREEN Checking if $DOWNLOAD_DIR exist $NORMAL
 if [ ! -d "$DOWNLOAD_DIR" ]; then
-  echo "creating $DOWNLOAD_DIR folder"
+  echo "creating $DOWNLOAD_DIR"
   mkdir -p $DOWNLOAD_DIR
 fi
 
-echo -e $GREEN Checking if $ROOT_DIR/$LIBSDEP_DIR exist $NORMAL 
-if [ ! -d "$ROOT_DIR/$LIBSDEP_DIR" ]; then
-  echo "creating $ROOT_DIR/$LIBSDEP_DIR"
+echo -e $GREEN Checking if $LIBSDEP_DIR exist $NORMAL 
+if [ ! -d "$LIBSDEP_DIR" ]; then
+  echo "creating $LIBSDEP_DIR"
   mkdir -p $LIBSDEP_DIR
 fi
 
-echo -e $GREEN Checking if $ROOT_DIR/$LIBSEXTERNAL_DIR exist $NORMAL
-if [ ! -d "$ROOT_DIR/$LIBSEXTERNAL_DIR" ]; then
-  echo "creating $ROOT_DIR/$LIBSEXTERNAL_DIR"
+echo -e $GREEN Checking if $LIBSEXTERNAL_DIR exist $NORMAL
+if [ ! -d "$LIBSEXTERNAL_DIR" ]; then
+  echo "creating $LIBSEXTERNAL_DIR"
   mkdir -p $LIBSEXTERNAL_DIR
+fi
+
+# Make sure that Wget and 7Zip is installed
+if hash wget 2>/dev/null; then
+    echo "wget is installed"
+else
+   echo "Install wget please. Use the MINGW-MSYS tool mingw-get.exe to install wget"; exit;     
+fi
+
+if type $ZIPTOOL 2>/dev/null; then
+    echo "$ZIPTOOL is installed"
+else
+   echo "Install 7z please. Download 7Zip from http://www.7-zip.org/download.html and add it to the path."; exit;     
 fi
 
 #********************************[Build ZLIB]***********************************
@@ -111,7 +115,7 @@ if $BUILD_ZLIB ; then
     SOURCE_ARCHIVE='zlib-1.2.8.tar.gz'
     SOURCE_URL='http://zlib.net/zlib-1.2.8.tar.gz'
 
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/$LIB_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/$LIB_NAME_DIR
 
     # Getting and building ZLIB
     echo && echo -e $GREEN  Getting and building $LIB_NAMEVERSION_DIR $NORMAL
@@ -121,8 +125,8 @@ if $BUILD_ZLIB ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
-
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
 
@@ -153,7 +157,7 @@ if $BUILD_GEOS ; then
     SOURCE_ARCHIVE='geos-3.4.2.tar.bz2'
     SOURCE_URL='http://download.osgeo.org/geos/geos-3.4.2.tar.bz2'
 
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_GEOS_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_GEOS_NAME_DIR
 
     # Getting and building GEOS
     echo && echo -e $GREEN  Getting and Building $LIB_GEOS_NAMEVERSION_DIR $NORMAL
@@ -163,7 +167,7 @@ if $BUILD_GEOS ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -196,7 +200,7 @@ if $BUILD_FREEXL ; then
     SOURCE_ARCHIVE='freexl-1.0.0g.tar.gz'
     SOURCE_URL='http://www.gaia-gis.it/gaia-sins/freexl-1.0.0g.tar.gz'
 
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_FREEXL_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_FREEXL_NAME_DIR
 
     # Getting and building FREEXL
     echo && echo -e $GREEN  Getting and building $LIB_FREEXL_NAMEVERSION_DIR $NORMAL
@@ -206,7 +210,7 @@ if $BUILD_FREEXL ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -236,7 +240,7 @@ if $BUILD_PROJ4 ; then
     SOURCE_ARCHIVE='proj-4.8.0.tar.gz'
     SOURCE_URL='http://download.osgeo.org/proj/proj-4.8.0.tar.gz'
   
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_PROJ4_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_PROJ4_NAME_DIR
 
     # Getting and building PROJ4
     echo && echo -e $GREEN  Getting and building $LIB_PROJ4_NAMEVERSION_DIR $NORMAL
@@ -246,7 +250,7 @@ if $BUILD_PROJ4 ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
     
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -276,7 +280,7 @@ if $BUILD_XML2 ; then
     SOURCE_ARCHIVE='libxml2-2.9.2.tar.gz'
     SOURCE_URL='http://xmlsoft.org/sources/libxml2-2.9.2.tar.gz'
 
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_XML_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_XML_NAME_DIR
 
     # Getting and building libXml2
     echo && echo -e $GREEN  Getting and building $LIB_XML_NAMEVERSION_DIR $NORMAL
@@ -286,7 +290,7 @@ if $BUILD_XML2 ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -316,14 +320,14 @@ if $BUILD_POSTGRES ; then
     BINARY_ARCHIVE='postgresql-9.3.5-1-windows-binaries.zip'
     SOURCE_URL='http://get.enterprisedb.com/postgresql/postgresql-9.3.5-1-windows-binaries.zip'
 
-    BIN_INSTALL_DIR=$ROOT_DIR/$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/$ARCH
+    BIN_INSTALL_DIR=$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/$ARCH
 
     echo && echo -e $GREEN  removing previous stuff $NORMAL
     #remove the previous ---------------- Build Binaries --------------------  of Postgres
     rm -rf $BIN_INSTALL_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the install directory
     mkdir -p $BIN_INSTALL_DIR
@@ -348,7 +352,7 @@ if $BUILD_SQLite ; then
 
     SOURCE_ARCHIVE='sqlite-autoconf-3080700.tar.gz'
     SOURCE_URL='http://www.sqlite.org/2014/sqlite-autoconf-3080700.tar.gz'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_SQLLITE_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_SQLLITE_NAME_DIR
 
     # Getting and building SQLite
     echo && echo -e $GREEN  Getting and building $NORMAL $LIB_SQLLITE_NAMEVERSION_DIR $NORMAL
@@ -358,7 +362,7 @@ if $BUILD_SQLite ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -386,7 +390,7 @@ if $BUILD_EXPAT ; then
 
     SOURCE_ARCHIVE='expat-2.1.0.tar.gz'
     SOURCE_URL='http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIB_EXPAT_NAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_EXPAT_NAME_DIR
 
     # Getting and building Expat
     echo && echo -e $GREEN  Getting and building $LIB_EXPAT_NAMEVERSION_DIR $NORMAL
@@ -396,7 +400,7 @@ if $BUILD_EXPAT ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -423,7 +427,7 @@ if $BUILD_GSL ; then
     LIBNAMEVERSION_DIR='gsl-1.16'
     SOURCE_ARCHIVE='gsl-1.16.tar.gz'
     SOURCE_URL='ftp://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
 
     # Getting and building GSL
     echo && echo -e $GREEN  Getting and building $NORMAL $LIBNAMEVERSION_DIR $NORMAL
@@ -433,7 +437,7 @@ if $BUILD_GSL ; then
     rm -rf $SOURCE_EXTRACT_DIR
     
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -462,7 +466,7 @@ if $BUILD_FLEX ; then
     SOURCE_URL='http://downloads.sourceforge.net/project/gnuwin32/flex/2.5.4a-1/flex-2.5.4a-1-bin.zip'
     BIN_INSTALL_DIR=/usr/local
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #Extract the zip file
     echo -e $GREEN  Extract the binaries for $LIBNAMEVERSION_DIR $NORMAL
@@ -483,7 +487,7 @@ if $BUILD_BISON ; then
     BIN_INSTALL_DIR=/usr/local
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #Extract the zip file
     echo -e $GREEN  Extract the binaries for $LIBNAMEVERSION_DIR $NORMAL
@@ -501,7 +505,7 @@ if $BUILD_ICONV ; then
 
     SOURCE_ARCHIVE='libiconv-1.14.tar.gz'
     SOURCE_URL='http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_ICONV_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_ICONV_DIR
 
     # Getting and building ICONV
     echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_ICONV_DIR $NORMAL
@@ -511,7 +515,7 @@ if $BUILD_ICONV ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -531,47 +535,59 @@ fi
 #*******************************[Build ICONV]***********************************
 
 #*******************************[Build LIB_DL]**********************************
-if $BUILD_LIB_DL ; then
-    #Change to downloads folder
-    echo && echo -e $YELLOW We need to build the libld.dll for spatialite $NORMAL
-    echo -e $YELLOW The libld.dll does not ship with the MSYS so we have to get the source and build it $NORMAL
-    echo -e $YELLOW for more information see http://stackoverflow.com/questions/12455160/using-libdl-so-in-mingw $NORMAL
-    
-    cd $DOWNLOAD_DIR
-    
-    LIBNAME_DLFCN_DIR='dlfcn-win32'
-    LIBNAMEVERSION_DLFCN_DIR='dlfcn-win32-master'
-    SOURCE_ARCHIVE='master'
-    SOURCE_URL='https://github.com/dlfcn-win32/dlfcn-win32/archive/master.zip'
-    
-    mkdir -p $LIBNAME_DLFCN_DIR
-    cd $LIBNAME_DLFCN_DIR
+if $BUILD_SPATIALITE ; then
+    # Check if libdl.a is installed. 
+    # When building spatialite the configure script somehow pick up that libld is installed, 
+    # and add -ldl to the linklist of the examples in spatialite, 
+    # then the build process crash if it is not present
+    if [ ! -f "/lib/libdl.a" ]; then
+     BUILD_LIB_DL=true 
+    else
+     BUILD_LIB_DL=false    
+    fi 
 
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DLFCN_DIR
+    if $BUILD_LIB_DL ; then
+        #Change to downloads folder
+        echo && echo -e $YELLOW We need to build the libld.dll for spatialite $NORMAL
+        echo -e $YELLOW The libld.dll does not ship with the MSYS so we have to get the source and build it $NORMAL
+        echo -e $YELLOW for more information see http://stackoverflow.com/questions/12455160/using-libdl-so-in-mingw $NORMAL
+        
+        cd $DOWNLOAD_DIR
+        
+        LIBNAME_DLFCN_DIR='dlfcn-win32'
+        LIBNAMEVERSION_DLFCN_DIR='dlfcn-win32-master'
+        SOURCE_ARCHIVE='master'
+        SOURCE_URL='https://github.com/dlfcn-win32/dlfcn-win32/archive/master.zip'
+        
+        mkdir -p $LIBNAME_DLFCN_DIR
+        cd $LIBNAME_DLFCN_DIR
 
-    # Getting and building LIB_DL
-    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DLFCN_DIR $NORMAL
-    #pwd
-    echo -e $GREEN  removing previous stuff $NORMAL
-    #remove the previous extracted files
-    rm -rf $SOURCE_EXTRACT_DIR
+        SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DLFCN_DIR
 
-    #Getting the source from the internet
-    wget --no-check-certificate $SOURCE_URL
+        # Getting and building LIB_DL
+        echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DLFCN_DIR $NORMAL
+        #pwd
+        echo -e $GREEN  removing previous stuff $NORMAL
+        #remove the previous extracted files
+        rm -rf $SOURCE_EXTRACT_DIR
 
-    #make the extraction directory
-    mkdir -p $SOURCE_EXTRACT_DIR
+        #Getting the source from the internet
+        wget --no-check-certificate $SOURCE_URL
 
-    #Extract the zip file
-    echo -e $RED Extract the source $NORMAL
-    $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
-    # cd to extracted directory
-    cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DLFCN_DIR
-    pwd
-    echo -e $GREEN  configure and build libdl.dll $NORMAL
-    echo -e $YELLOW &&  ./configure --libdir=/lib --incdir=/include &&  echo -e $NORMAL
-    make && make install 
-    echo
+        #make the extraction directory
+        mkdir -p $SOURCE_EXTRACT_DIR
+
+        #Extract the zip file
+        echo -e $RED Extract the source $NORMAL
+        $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
+        # cd to extracted directory
+        cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DLFCN_DIR
+        pwd
+        echo -e $GREEN  configure and build libdl.dll $NORMAL
+        echo -e $YELLOW &&  ./configure --libdir=/lib --incdir=/include &&  echo -e $NORMAL
+        make && make install 
+        echo
+    fi
 fi
 #*******************************[Build LIB_DL]**********************************
 
@@ -584,7 +600,7 @@ if $BUILD_SPATIALITE ; then
     LIBNAMEVERSION_DIR='libspatialite-4.2.0'
     SOURCE_ARCHIVE='libspatialite-4.2.0.tar.gz'
     SOURCE_URL='http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-4.2.0.tar.gz'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
 
     # Getting and building SPATIALITE
     echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
@@ -594,7 +610,7 @@ if $BUILD_SPATIALITE ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    ##echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -628,7 +644,7 @@ if $BUILD_SPATIALINDEX ; then
     LIBNAMEVERSION_DIR='spatialindex-src-1.8.4'
     SOURCE_ARCHIVE='spatialindex-src-1.8.4.tar.gz'
     SOURCE_URL='http://download.osgeo.org/libspatialindex/spatialindex-src-1.8.4.tar.gz'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
 
     # Getting and building SPATIALINDEX
     echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
@@ -638,7 +654,7 @@ if $BUILD_SPATIALINDEX ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    ##echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
     
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -671,7 +687,7 @@ if $BUILD_GDAL ; then
     LIBNAMEVERSION_DIR='gdal-1.11.1'
     SOURCE_ARCHIVE='gdal1111.zip'
     SOURCE_URL='http://download.osgeo.org/gdal/1.11.1/gdal1111.zip'
-    SOURCE_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
     
     # Getting and building GDAL
     echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
@@ -681,7 +697,7 @@ if $BUILD_GDAL ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -693,7 +709,7 @@ if $BUILD_GDAL ; then
     cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DIR
     #pwd
     echo -e $GREEN  configure makefiles $NORMAL
-    echo -e $YELLOW && ./configure --with-pg=$ROOT_DIR/$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/win32/pgsql/bin/pg_config.exe --with-freexl=/usr/local/lib  && echo -e $NORMAL
+    echo -e $YELLOW && ./configure --with-pg=$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/win32/pgsql/bin/pg_config.exe --with-freexl=/usr/local/lib  && echo -e $NORMAL
     echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
     $MAKETOOL && $MAKETOOL install
     echo
@@ -703,7 +719,7 @@ fi
 #*******************************[Build QWT]*************************************
 LIB_QWT_NAME_DIR='qwt'
 LIB_QWT_NAMEVERSION_DIR='qwt-6.1.1'
-SOURCE_QWT_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/$LIB_QWT_NAME_DIR
+SOURCE_QWT_EXTRACT_DIR=$LIBSEXTERNAL_DIR/$LIB_QWT_NAME_DIR
 if $GET_QWT ; then
     #Change to downloads folder
     cd $DOWNLOAD_DIR
@@ -719,7 +735,7 @@ if $GET_QWT ; then
     rm -rf $SOURCE_QWT_EXTRACT_DIR/$LIB_QWT_NAMEVERSION_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_QWT_EXTRACT_DIR
@@ -749,7 +765,7 @@ fi
 #*******************************[Build QWT_POLAR]*******************************
 LIB_QWTPOLAR_NAME_DIR='qwtpolar'
 LIB_QWTPOLAR_NAMEVERSION_DIR='qwtpolar-1.1.1'
-SOURCE_QWTPOLAR_EXTRACT_DIR=$ROOT_DIR/$LIBSEXTERNAL_DIR/$LIB_QWTPOLAR_NAME_DIR
+SOURCE_QWTPOLAR_EXTRACT_DIR=$LIBSEXTERNAL_DIR/$LIB_QWTPOLAR_NAME_DIR
 if $GET_QWTPOLAR ; then
     #Change to downloads folder
     cd $DOWNLOAD_DIR
@@ -765,7 +781,7 @@ if $GET_QWTPOLAR ; then
     rm -rf $SOURCE_QWTPOLAR_EXTRACT_DIR/$LIB_QWTPOLAR_NAMEVERSION_DIR
 
     #Getting the source from the internet
-    #echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_QWTPOLAR_EXTRACT_DIR
@@ -792,7 +808,7 @@ if $BUILD_QWTPOLAR ; then
     export QMAKEFEATURES=/usr/local/features 
     QMAKE_OPTIONS='-set QMAKEFEATURES=/usr/local/features'
     #$QMAKE $QMAKE_BUILD_OPTIONS ./qwtpolar.pro
-    #echo $QMAKE $QMAKE_OPTIONS ./qwtpolar.pro
+    echo $QMAKE $QMAKE_OPTIONS ./qwtpolar.pro
     #$QMAKE $QMAKE_OPTIONS ./qwtpolar.pro
     $QMAKE ./qwtpolar.pro
     echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
