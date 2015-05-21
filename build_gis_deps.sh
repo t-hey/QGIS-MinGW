@@ -19,33 +19,45 @@ MAKETOOL='make'
 #CMake string for the type of makefiles to be generated
 CMAKE_GENERATOR_NAME='MSYS Makefiles'
 #Name for the CMake tool
-CMAKE_TOOL='cmake -G'
+CMAKE_EXE='cmake'
+CMAKE_TOOL=$CMAKE_EXE' -G'
 #Build options for qmake
 QMAKE_BUILD_OPTIONS='-makefile -spec win32-g++'
 #Path to the qmake exe
 QMAKE='C:/Qt/Qt5.4.1/5.4/mingw491_32/bin/qmake'
+#Path to mingw installation
+MINGW_INSTALL_DIR='/c/Qt/Qt5.4.1/Tools/mingw491_32'
+PACKAGE_CONFIG_TOOL='pkg-config.exe'
+#Path to MSYS mingw-get.exe utility
+MINGW_GET_UTIL_DIR='/c/Tools/MinGW-MSYS/bin'
+MINGW_GET_UTIL='/c/Tools/MinGW-MSYS/bin/mingw-get.exe'
+#Path to MINGW python
+PYTHON_EXE_PATH=$MINGW_INSTALL_DIR/opt/bin
+PYTHON_LIB_PATH=$MINGW_INSTALL_DIR/opt/lib/python2.7
+
 
 #************* Flags for which dependencies to build, by default all is false **************
-BUILD_ZLIB=true #optional
-BUILD_GEOS=true #Build with cmake, i get link errors when configure generate the makefiles
-BUILD_FREEXL=true
-BUILD_PROJ4=true
-BUILD_XML2=true
-BUILD_POSTGRES=true
-BUILD_SQLite=true
-BUILD_EXPAT=true
-BUILD_GSL=true
-BUILD_FLEX=true   #optional
-BUILD_BISON=true  #optional
-BUILD_ICONV=true
-BUILD_SPATIALITE=true
-BUILD_SPATIALINDEX=true #Build it with CMAKE the configure does not work
-BUILD_GDAL=true
-GET_QWT=true
-BUILD_QWT=true
-GET_QWTPOLAR=true
-BUILD_QWTPOLAR=true
-
+BUILD_ZLIB=false #optional
+BUILD_GEOS=false #Build with cmake, i get link errors when configure generate the makefiles
+BUILD_FREEXL=false
+BUILD_PROJ4=false
+BUILD_XML2=false
+BUILD_POSTGRES=false
+BUILD_SQLite=false
+BUILD_EXPAT=false
+BUILD_GSL=false
+BUILD_FLEX=false   #optional
+BUILD_BISON=false  #optional
+BUILD_ICONV=false
+BUILD_SPATIALITE=false
+BUILD_SPATIALINDEX=false #Build it with CMAKE the configure does not work
+BUILD_GDAL=false
+GET_QWT=false
+BUILD_QWT=false
+GET_QWTPOLAR=false
+BUILD_QWTPOLAR=false
+BUILD_SIP=true
+BUILD_PYQT=false
 
 #************** Define colors *********************
 BLACK="\033[30m"
@@ -57,6 +69,35 @@ PURPLE="\033[35m"
 CYAN="\033[36m"
 WHITE="\033[37m"
 NORMAL="\033[0;39m"
+
+#Check for pkg-config tool and install if necessary.
+if type $PACKAGE_CONFIG_TOOL 2>/dev/null; then
+    echo "$PACKAGE_CONFIG_TOOL is installed"
+else
+   [ ! -f $MINGW_GET_UTIL ] && echo -e $RED "$MINGW_GET_UTIL is not present, dependencies for $PACKAGE_CONFIG_TOOL will not be able to install" $NORMAL && exit
+  
+   echo -e $RED "$PACKAGE_CONFIG_TOOL is not installed" $NORMAL; 
+   echo -e $GREEN "Installing $PACKAGE_CONFIG_TOOL...." 
+   cd $DOWNLOAD_DIR
+   echo -e $GREEN "Downloading pkg-config_0.23-3_win32 binaries..."
+   PACKAGE_CONFIG_TOOL_URL='http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/pkg-config_0.23-3_win32.zip'
+   [ ! -f pkg-config_0.23-3_win32.zip ] && echo -e $CYAN && wget $PACKAGE_CONFIG_TOOL_URL && echo -e $NORMAL 
+   #Extract the zip file
+   [ -f pkg-config_0.23-3_win32.zip ] && $ZIPTOOL pkg-config_0.23-3_win32.zip -opkg-config_0.23-3_win32 > nul
+   [ -d pkg-config_0.23-3_win32 ] && cp pkg-config_0.23-3_win32/bin/$PACKAGE_CONFIG_TOOL $MINGW_INSTALL_DIR/bin
+   
+   echo -e $GREEN "Downloading glib_2.28.1-1_win32 binaries..."
+   GLIB_DLL_URL='http://ftp.gnome.org/pub/gnome/binaries/win32/glib/2.28/glib_2.28.1-1_win32.zip'
+   [ ! -f glib_2.28.1-1_win32.zip ] && echo -e $CYAN && wget $GLIB_DLL_URL && echo -e $NORMAL 
+   #Extract the zip file
+   [ -f glib_2.28.1-1_win32.zip ] && $ZIPTOOL glib_2.28.1-1_win32.zip -oglib_2.28.1-1_win32 > nul
+   [ -d glib_2.28.1-1_win32 ] && cp glib_2.28.1-1_win32/bin/libglib-2.0-0.dll $MINGW_INSTALL_DIR/bin
+    
+   echo -e $GREEN "Installing mingw32-libintl..." 
+   [ -f $MINGW_GET_UTIL ] && echo on && $MINGW_GET_UTIL install mingw32-libintl
+   cp $MINGW_GET_UTIL_DIR/libintl-8.dll $MINGW_INSTALL_DIR/bin/intl.dll   
+   cp $MINGW_GET_UTIL_DIR/libiconv-2.dll $MINGW_INSTALL_DIR/bin/libiconv-2.dll
+fi  
 
 #Check binary paths
 if [[ $QMAKE = '' ]]; then
@@ -104,6 +145,12 @@ if type $ZIPTOOL 2>/dev/null; then
     echo "$ZIPTOOL is installed"
 else
    echo "Install 7z please. Download 7Zip from http://www.7-zip.org/download.html and add it to the path."; exit;     
+fi
+
+if type $CMAKE_EXE 2>/dev/null; then
+    echo "$$CMAKE_EXE is installed"
+else
+   echo "CMAKE is not installed. Download the latest version from http://www.cmake.org/download/ and install it and add it to the path."; exit;     
 fi
 
 #********************************[Build ZLIB]***********************************
@@ -191,14 +238,14 @@ fi
 
 #*******************************[Build FREEXL]**********************************
 LIB_FREEXL_NAME_DIR='freexl'
-LIB_FREEXL_NAMEVERSION_DIR='freexl-1.0.0g'
+LIB_FREEXL_NAMEVERSION_DIR=$LIB_FREEXL_NAME_DIR'-1.0.1'
 if $BUILD_FREEXL ; then
 
     #Change to downloads folder
     cd $DOWNLOAD_DIR
 
-    SOURCE_ARCHIVE='freexl-1.0.0g.tar.gz'
-    SOURCE_URL='http://www.gaia-gis.it/gaia-sins/freexl-1.0.0g.tar.gz'
+    SOURCE_ARCHIVE=$LIB_FREEXL_NAMEVERSION_DIR'.tar.gz'
+    SOURCE_URL='http://www.gaia-gis.it/gaia-sins/freexl-sources/'$SOURCE_ARCHIVE
 
     SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_FREEXL_NAME_DIR
 
@@ -231,14 +278,15 @@ fi
 
 #*******************************[Build PROJ4]***********************************
 LIB_PROJ4_NAME_DIR='proj4'
-LIB_PROJ4_NAMEVERSION_DIR='proj-4.8.0'
+LIB_PROJ4_VERSION='4.9.1'
+LIB_PROJ4_NAMEVERSION_DIR='proj-'$LIB_PROJ4_VERSION
 if $BUILD_PROJ4 ; then
 
     #Change to downloads folder
     cd $DOWNLOAD_DIR
 
-    SOURCE_ARCHIVE='proj-4.8.0.tar.gz'
-    SOURCE_URL='http://download.osgeo.org/proj/proj-4.8.0.tar.gz'
+    SOURCE_ARCHIVE=$LIB_PROJ4_NAMEVERSION_DIR'.tar.gz'
+    SOURCE_URL='http://download.osgeo.org/proj/'$SOURCE_ARCHIVE
   
     SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_PROJ4_NAME_DIR
 
@@ -302,9 +350,9 @@ if $BUILD_XML2 ; then
     cd $SOURCE_EXTRACT_DIR/$LIB_XML_NAMEVERSION_DIR
     #pwd
     echo -e $GREEN  configure libXml2 makefiles $NORMAL
-    echo -e $YELLOW && ./configure --without-python &&  echo -e $NORMAL
+    echo -e $YELLOW && ./configure --without-python  --with-zlib=/usr/local --with-lzma=/usr/local &&  echo -e $NORMAL
     echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
-    $MAKETOOL && $MAKETOOL install
+    $MAKETOOL && $MAKETOOL install-strip
 fi
 #*******************************[Build libXml2]*********************************
 
@@ -327,7 +375,7 @@ if $BUILD_POSTGRES ; then
     rm -rf $BIN_INSTALL_DIR
 
     #Getting the source from the internet
-    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $BINARY_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #make the install directory
     mkdir -p $BIN_INSTALL_DIR
@@ -345,13 +393,14 @@ fi
 
 #*******************************[Build SQLite]**********************************
 LIB_SQLLITE_NAME_DIR='sqlite'
-LIB_SQLLITE_NAMEVERSION_DIR='sqlite-3.8.7'
+LIB_SQLLITE_VERSION='3.8.10.1'
+LIB_SQLLITE_NAMEVERSION_DIR=$LIB_SQLLITE_NAME_DIR'-'$LIB_SQLLITE_VERSION
 if $BUILD_SQLite ; then
     #Change to downloads folder
     cd $DOWNLOAD_DIR
 
-    SOURCE_ARCHIVE='sqlite-autoconf-3080700.tar.gz'
-    SOURCE_URL='http://www.sqlite.org/2014/sqlite-autoconf-3080700.tar.gz'
+    SOURCE_ARCHIVE='sqlite-autoconf-3081001.tar.gz'
+    SOURCE_URL='https://www.sqlite.org/2015/'$SOURCE_ARCHIVE
     SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIB_SQLLITE_NAME_DIR
 
     # Getting and building SQLite
@@ -362,7 +411,7 @@ if $BUILD_SQLite ; then
     rm -rf $SOURCE_EXTRACT_DIR
 
     #Getting the source from the internet
-    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget --no-check-certificate $SOURCE_URL && echo -e $NORMAL
 
     #make the extraction directory
     mkdir -p $SOURCE_EXTRACT_DIR
@@ -371,8 +420,8 @@ if $BUILD_SQLite ; then
     echo -e $RED Extract the source $NORMAL
     tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
     # cd to extracted directory
-    cd $SOURCE_EXTRACT_DIR/sqlite-autoconf-3080700
-    #pwd
+    SOURCE_EXTRACTED_DIR=`echo "$SOURCE_ARCHIVE" | sed -n 's/\([a-z0-9\-].*\)\.tar.gz/\1/p'` 
+    cd $SOURCE_EXTRACT_DIR/$SOURCE_EXTRACTED_DIR 
     echo -e $GREEN  configure makefiles $NORMAL
     echo -e $YELLOW && ./configure &&  echo -e $NORMAL
     echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
@@ -466,7 +515,7 @@ if $BUILD_FLEX ; then
     SOURCE_URL='http://downloads.sourceforge.net/project/gnuwin32/flex/2.5.4a-1/flex-2.5.4a-1-bin.zip'
     BIN_INSTALL_DIR=/usr/local
     #Getting the source from the internet
-    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $BIN_INSTALL_DIR ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #Extract the zip file
     echo -e $GREEN  Extract the binaries for $LIBNAMEVERSION_DIR $NORMAL
@@ -487,7 +536,7 @@ if $BUILD_BISON ; then
     BIN_INSTALL_DIR=/usr/local
 
     #Getting the source from the internet
-    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+    [ ! -f $BIN_INSTALL_DIR ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
     #Extract the zip file
     echo -e $GREEN  Extract the binaries for $LIBNAMEVERSION_DIR $NORMAL
@@ -625,6 +674,11 @@ if $BUILD_SPATIALITE ; then
     export "CFLAGS=-I/usr/local/include"
     export "LDFLAGS=-L/usr/local/lib"
     export "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig"
+    export "PKG_CONFIG=$MINGW_INSTALL_DIR/bin/$PACKAGE_CONFIG_TOOL"
+    echo -e $RED && echo "CFLAGS=$CFLAGS"
+    echo -e $RED && echo "LDFLAGS=$LDFLAGS"
+    echo -e $RED && echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+    echo -e $RED && echo "PKG_CONFIG=$PKG_CONFIG"
     echo -e $YELLOW && ./configure --target=mingw32 #--enable-lwgeom=yes 
     echo -e $NORMAL
     make && make install-strip
@@ -641,9 +695,10 @@ if $BUILD_SPATIALINDEX ; then
     cd $DOWNLOAD_DIR
 
     LIBNAME_DIR='spatialindex'
-    LIBNAMEVERSION_DIR='spatialindex-src-1.8.4'
-    SOURCE_ARCHIVE='spatialindex-src-1.8.4.tar.gz'
-    SOURCE_URL='http://download.osgeo.org/libspatialindex/spatialindex-src-1.8.4.tar.gz'
+    LIBNAME_VERSION='1.8.5'
+    LIBNAMEVERSION_DIR=$LIBNAME_DIR'-src-'$LIBNAME_VERSION
+    SOURCE_ARCHIVE=$LIBNAMEVERSION_DIR'.tar.gz'
+    SOURCE_URL='http://download.osgeo.org/libspatialindex/'$SOURCE_ARCHIVE
     SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_DIR
 
     # Getting and building SPATIALINDEX
@@ -699,17 +754,14 @@ if $BUILD_GDAL ; then
     #Getting the source from the internet
     [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
-    #make the extraction directory
-    mkdir -p $SOURCE_EXTRACT_DIR
-
-    #Extract the zip file
-    $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
+    #make the extraction directory and Extract the zip file
+    [ ! -d $SOURCE_EXTRACT_DIR ] && mkdir -p $SOURCE_EXTRACT_DIR && $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
 
     # cd to extracted directory
     cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DIR
     #pwd
     echo -e $GREEN  configure makefiles $NORMAL
-    echo -e $YELLOW && ./configure --with-pg=$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/win32/pgsql/bin/pg_config.exe --with-freexl=/usr/local/lib  && echo -e $NORMAL
+    echo -e $YELLOW && ./configure --with-pg=$LIBSDEP_DIR/$LIBNAME_PG_DIR/$LIB_PG_NAMEVERSION_DIR/win32/pgsql/bin/pg_config.exe --with-freexl=/usr/local && echo -e $NORMAL
     echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
     $MAKETOOL && $MAKETOOL install
     echo
@@ -718,14 +770,15 @@ fi
 
 #*******************************[Build QWT]*************************************
 LIB_QWT_NAME_DIR='qwt'
-LIB_QWT_NAMEVERSION_DIR='qwt-6.1.1'
+LIB_QWT_VERSION='6.1.2'
+LIB_QWT_NAMEVERSION_DIR=$LIB_QWT_NAME_DIR'-'$LIB_QWT_VERSION
 SOURCE_QWT_EXTRACT_DIR=$LIBSEXTERNAL_DIR/$LIB_QWT_NAME_DIR
 if $GET_QWT ; then
     #Change to downloads folder
     cd $DOWNLOAD_DIR
-
-    SOURCE_ARCHIVE='qwt-6.1.1.tar.bz2'
-    SOURCE_URL='http://downloads.sourceforge.net/project/qwt/qwt/6.1.1/qwt-6.1.1.tar.bz2'
+http://downloads.sourceforge.net/project/qwt/qwt/6.1.2/qwt-6.1.2.tar.bz2
+    SOURCE_ARCHIVE=$LIB_QWT_NAMEVERSION_DIR'.tar.bz2'
+    SOURCE_URL='http://downloads.sourceforge.net/project/'$LIB_QWT_NAME_DIR/$LIB_QWT_NAME_DIR/$LIB_QWT_VERSION/$SOURCE_ARCHIVE
     
     # Getting QWT
     echo && echo -e $GREEN  Getting $LIB_QWT_NAMEVERSION_DIR $NORMAL
@@ -747,6 +800,8 @@ if $GET_QWT ; then
     cd $SOURCE_QWT_EXTRACT_DIR/$LIB_QWT_NAMEVERSION_DIR
     echo && echo "Change the QWT_INSTALL_PREFIX to " $BIN_QWT_INSTALL_DIR " in the  qwtconfig.pri file" 
     SED_SCRIPT='s|QWT_INSTALL_PREFIX .* [Cc]:\/[A-Za-z\$_-]*|QWT_INSTALL_PREFIX = '/usr/local'|g'
+    echo -e $GREEN && echo "SED_SCRIPT=$SED_SCRIPT"
+    echo "Current working directory" && pwd
     sed -i "$SED_SCRIPT" qwtconfig.pri
 fi
 
@@ -817,5 +872,61 @@ if $BUILD_QWTPOLAR ; then
 fi
 #*******************************[Build QWT_POLAR]*******************************
 
+#*******************************[Build SIP]************************************
+if $BUILD_SIP ; then
+    #Change to downloads folder
+    cd $DOWNLOAD_DIR
+    LIBNAME_DIR='sip'
+    LIB_VERSION='4.16.7'
+    LIBNAMEVERSION_DIR=$LIBNAME_DIR'-'$LIB_VERSION
+    SOURCE_ARCHIVE=$LIBNAMEVERSION_DIR'.zip'
+    SOURCE_URL='http://sourceforge.net/projects/pyqt/files/'$LIBNAME_DIR/$LIBNAMEVERSION_DIR/$SOURCE_ARCHIVE
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/$LIBNAME_DIR
+    
+    # Getting and building SIP
+    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
+    #pwd
+    echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous extracted files of SIP
+    rm -rf $SOURCE_EXTRACT_DIR
 
+    #Getting the source from the internet
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
 
+    #make the extraction directory and Extract the zip file
+    [ ! -d $SOURCE_EXTRACT_DIR ] && mkdir -p $SOURCE_EXTRACT_DIR && $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
+
+	#Get the PyQt stuff 
+	#Change to downloads folder
+    cd $DOWNLOAD_DIR
+    LIBNAME_DIR='PyQt'
+    LIB_VERSION='5.4.1'
+    LIBNAMEVERSION_DIR=$LIBNAME_DIR'-'$LIB_VERSION
+    SOURCE_ARCHIVE=$LIBNAME_DIR'-gpl-'$LIB_VERSION'.zip'
+    SOURCE_URL='http://sourceforge.net/projects/pyqt/files/PyQt5'/$LIBNAMEVERSION_DIR/$SOURCE_ARCHIVE
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/$LIBNAME_DIR
+    
+    # Getting and building SIP
+    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_DIR $NORMAL
+    #pwd
+    echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous extracted files of SIP
+    rm -rf $SOURCE_EXTRACT_DIR
+
+    #Getting the source from the internet
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+
+    #make the extraction directory and Extract the zip file
+    [ ! -d $SOURCE_EXTRACT_DIR ] && mkdir -p $SOURCE_EXTRACT_DIR && $ZIPTOOL $SOURCE_ARCHIVE -o$SOURCE_EXTRACT_DIR
+	
+    [ ! -d $MINGW_INSTALL_DIR/opt/libs ] && mkdir -p $MINGW_INSTALL_DIR/opt/libs 
+	[ ! -f $MINGW_INSTALL_DIR/opt/libs/libpython27.dll ] && cp $MINGW_INSTALL_DIR/opt/bin/libpython2.7.dll $MINGW_INSTALL_DIR/opt/libs/libpython27.dll
+	
+    # cd to extracted directory
+    #cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_DIR
+	echo
+	echo -e $GREEN ATTENTION:
+	echo -e $GREEN You have to open a cmd prompt and cd to where the $WHITE build_sip_pyqt.bat $GREEN is copied, \\n and execute the build_sip_pyqt.bat file. \\n It should be where you cloned the QGIS-MinGW repo.  $NORMAL
+    echo
+fi
+#*******************************[Build SIP]************************************
