@@ -9,7 +9,7 @@ I used MinGW with posix threading and dwarf exception handling, for a explanatio
 Get latest version of MinGW here http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.1/threads-posix/dwarf <br>
 
 - MSYS<br>
-Install MSYS with the mingw-get-setup.exe from this page http://www.mingw.org/wiki/getting_started and follow the instructions on how to use the MinGW you downloaded.<br>
+Install MSYS with the mingw-get-setup.exe from this page http://www.mingw.org/wiki/getting_started and follow the instructions on how to use the MinGW you downloaded.
 - CMake.<br>
 Download the lastest CMake and install, and add it to the path.<br>
 - 7Zip<br>
@@ -26,7 +26,10 @@ Further more this MinGW version comes with a python build aswell, so you can use
 - Add the &lt;<i>MSYS install dir</i>&gt;\msys\1.0\local\bin,<br> 
 &lt;<i>MSYS install dir</i>&gt;\msys\1.0\local\include and <br> 
 &lt;<i>MSYS install dir</i>&gt;\msys\1.0\local\lib folders to you path.
-- Clone/Fork the QGIS git repo https://github.com/qgis/QGIS 
+- Clone/Fork the QGIS git repo https://github.com/qgis/QGIS
+- First confirm that the variables in the build_gis_deps.sh file is correct for your build enviroment
+- Open MSYS, cd to the cloned repo, and execute the build_gis_deps.sh script.
+- When the build_gis_deps.sh have finished, open a cmd prompt and cd to the cloned repo and execute the build_sip_pyqt.bat file. 
 - Create a out of source build directory e.g. c:\cpp\build-qgis-2.8-5.4.1-debug
 - cd to &lt;<i>out of source build directory</i>&gt;
 - Issue the commands in the qgis_cmake_command.txt file.
