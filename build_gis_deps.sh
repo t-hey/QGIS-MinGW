@@ -39,6 +39,7 @@ PYTHON_LIB_PATH=$MINGW_INSTALL_DIR/opt/lib/python2.7
 #************* Flags for which dependencies to build, by default all is false **************
 BUILD_ZLIB=false #optional
 BUILD_GEOS=false #Build with cmake, i get link errors when configure generate the makefiles
+BUILD_ICONV=false
 BUILD_FREEXL=false
 BUILD_PROJ4=false
 BUILD_XML2=false
@@ -48,7 +49,6 @@ BUILD_EXPAT=false
 BUILD_GSL=false
 BUILD_FLEX=false   #optional
 BUILD_BISON=false  #optional
-BUILD_ICONV=false
 BUILD_SPATIALITE=false
 BUILD_SPATIALINDEX=false #Build it with CMAKE the configure does not work
 BUILD_GDAL=false
@@ -235,6 +235,44 @@ if $BUILD_GEOS ; then
     echo
 fi
 #*******************************[Build GEOS]************************************
+
+#*******************************[Build ICONV]***********************************
+LIBNAME_ICONV_DIR='iconv'
+LIBNAMEVERSION_ICONV_DIR='libiconv-1.14'
+if $BUILD_ICONV ; then
+    #Change to downloads folder
+    cd $DOWNLOAD_DIR
+
+    SOURCE_ARCHIVE='libiconv-1.14.tar.gz'
+    SOURCE_URL='http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz'
+    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_ICONV_DIR
+
+    # Getting and building ICONV
+    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_ICONV_DIR $NORMAL
+    #pwd
+    echo -e $GREEN  removing previous stuff $NORMAL
+    #remove the previous extracted files of ICONV
+    rm -rf $SOURCE_EXTRACT_DIR
+
+    #Getting the source from the internet
+    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
+
+    #make the extraction directory
+    mkdir -p $SOURCE_EXTRACT_DIR
+
+    #Extract the zip file
+    echo -e $RED Extract the source $NORMAL
+    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
+    # cd to extracted directory
+    cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_ICONV_DIR
+    #pwd
+    echo -e $GREEN  configure ICONV makefiles $NORMAL
+    echo -e $YELLOW && ./configure && echo -e $NORMAL
+    echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
+    $MAKETOOL && $MAKETOOL install
+    echo
+fi
+#*******************************[Build ICONV]***********************************
 
 #*******************************[Build FREEXL]**********************************
 LIB_FREEXL_NAME_DIR='freexl'
@@ -544,44 +582,6 @@ if $BUILD_BISON ; then
     echo
 fi
 #*******************************[Build BISON]***********************************
-
-#*******************************[Build ICONV]***********************************
-LIBNAME_ICONV_DIR='iconv'
-LIBNAMEVERSION_ICONV_DIR='libiconv-1.14'
-if $BUILD_ICONV ; then
-    #Change to downloads folder
-    cd $DOWNLOAD_DIR
-
-    SOURCE_ARCHIVE='libiconv-1.14.tar.gz'
-    SOURCE_URL='http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz'
-    SOURCE_EXTRACT_DIR=$LIBSEXTERNAL_DIR/Gis/$LIBNAME_ICONV_DIR
-
-    # Getting and building ICONV
-    echo && echo -e $GREEN  Getting and building $LIBNAMEVERSION_ICONV_DIR $NORMAL
-    #pwd
-    echo -e $GREEN  removing previous stuff $NORMAL
-    #remove the previous extracted files of ICONV
-    rm -rf $SOURCE_EXTRACT_DIR
-
-    #Getting the source from the internet
-    [ ! -f $SOURCE_ARCHIVE ] && echo -e $CYAN && wget $SOURCE_URL && echo -e $NORMAL
-
-    #make the extraction directory
-    mkdir -p $SOURCE_EXTRACT_DIR
-
-    #Extract the zip file
-    echo -e $RED Extract the source $NORMAL
-    tar -zxvf $SOURCE_ARCHIVE -C $SOURCE_EXTRACT_DIR
-    # cd to extracted directory
-    cd $SOURCE_EXTRACT_DIR/$LIBNAMEVERSION_ICONV_DIR
-    #pwd
-    echo -e $GREEN  configure ICONV makefiles $NORMAL
-    echo -e $YELLOW && ./configure && echo -e $NORMAL
-    echo -e $GREEN  ---------------- Build Binaries -------------------- $NORMAL
-    $MAKETOOL && $MAKETOOL install
-    echo
-fi
-#*******************************[Build ICONV]***********************************
 
 #*******************************[Build LIB_DL]**********************************
 if $BUILD_SPATIALITE ; then
